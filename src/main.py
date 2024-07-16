@@ -9,29 +9,33 @@ def encode_image(image_path):
         return base64.b64encode(image_file.read()).decode("utf-8")
 
 # 画像のパス
-image_path = "/Users/harumiuduki/Documents/img_1.jpg"
+image_paths = ["/Users/harumiuduki/Documents/img_1.jpg",
+              "/Users/harumiuduki/Documents/img_2.jpg",
+              "/Users/harumiuduki/Documents/img_3.jpg",
+              "/Users/harumiuduki/Documents/img_4.jpg",
+              "/Users/harumiuduki/Documents/img_5.jpg"]
+for image_path in image_paths:
+  # 画像をbase64にエンコードする
+  base64_image = encode_image(image_path)
 
-# 画像をbase64にエンコードする
-base64_image = encode_image(image_path)
+  # OpenAI APIのクライアントを作成する.
+  client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
-# OpenAI APIのクライアントを作成する.
-client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+  # チャットの応答を生成する
+  response = client.chat.completions.create(
+      model="gpt-4o", # "gpt-4-turbo-2024-04-09",
+      messages=[
+          {
+              "role": "user",
+              "content": [
+                  {"type": "text", "text": "画像から文字を読み取ってください。"},
+                  {"type": "image_url","image_url": {
+                    "url": f"data:image/jpeg;base64,{base64_image}"}}
+              ],
+          }
+      ],
+      max_tokens=300,
+  )
 
-# チャットの応答を生成する
-response = client.chat.completions.create(
-    model="gpt-4o", # "gpt-4-turbo-2024-04-09",
-    messages=[
-        {
-            "role": "user",
-            "content": [
-                {"type": "text", "text": "画像から文字を読み取ってください。"},
-                {"type": "image_url","image_url": {
-                  "url": f"data:image/jpeg;base64,{base64_image}"}}
-            ],
-        }
-    ],
-    max_tokens=300,
-)
-
-# 応答を表示する
-print(response.choices[0])
+  # 応答を表示する
+  print(response.choices[0])
